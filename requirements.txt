@@ -1,0 +1,6 @@
+kiteconnect
+dbt-postgres
+pandas
+psycopg2-binary
+python-dotenv
+openpyxl
