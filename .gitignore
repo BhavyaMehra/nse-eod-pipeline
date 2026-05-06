@@ -1,2 +1,5 @@
 .env
 dbt/profiles.yml
+logs/
+dbt/target/
+dbt/logs/
