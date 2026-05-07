@@ -13,7 +13,7 @@ st.markdown("""
                     
         ---
 
-        **Nativate using the sidebar**
+        **Navigate using the sidebar**
         - **Market Overview** - daily return heatmap, top gainers and losers
         - **Stock Deep Dive** - price chart with moving averages and volatility
         - **Screener** - filter stocks by return and volatility
