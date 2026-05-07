@@ -13,7 +13,7 @@ default_args = {
 with DAG(
     dag_id='eod_pipeline',
     default_args=default_args,
-    start_date=datetime(2026, 5, 1, tzinfo=local_tz),
+    start_date=datetime(2026, 5, 1),
     schedule='45 10 * * 1-5',
     catchup=False,
     tags=['nse', 'eod', 'pipeline'],
@@ -26,7 +26,14 @@ with DAG(
 
     dbt_run = BashOperator(
         task_id='dbt_run',
-        bash_command='cd /opt/airflow/dbt && dbt run --profiles-dir /opt/airflow/dbt'
+        bash_command="""
+        export POSTGRES_HOST=$NEON_HOST &&
+        export POSTGRES_PORT=5432 &&
+        export POSTGRES_USER=$NEON_USER &&
+        export POSTGRES_PASSWORD=$NEON_PASSWORD &&
+        export NSE_WAREHOUSE_DB=$NEON_DB &&
+        cd /opt/airflow/dbt && dbt run --profiles-dir /opt/airflow/dbt
+    """
     )
 
     ingest >> dbt_run

@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: raw
-    database: nse_warehouse
+    database: "{{ env_var('NSE_WAREHOUSE_DB') }}"
     schema: raw
     tables:
       - name: eod_prices

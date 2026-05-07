@@ -12,13 +12,24 @@ API_KEY = os.getenv("KITE_API_KEY")
 ACCESS_TOKEN = os.getenv('KITE_ACCESS_TOKEN')
 FNO_PATH = os.getenv('FNO_PATH')
 
-DB_CONFIG = {
-    "host":     os.getenv('POSTGRES_HOST', 'localhost'),
-    "port":     int(os.getenv('POSTGRES_PORT', 5433)),
-    "dbname":   os.getenv('NSE_WAREHOUSE_DB', 'nse_warehouse'),
-    "user":     os.getenv('POSTGRES_USER', 'pipeline_user'),
-    "password": os.getenv('POSTGRES_PASSWORD', 'changeme123'),
-}
+IN_DOCKER = os.path.exists('/.dockerenv')
+
+if IN_DOCKER:
+    DB_CONFIG = {
+        "host":     os.getenv('NEON_HOST'),
+        "sslmode":  'require',
+        "dbname":   os.getenv('NEON_DB'),
+        "user":     os.getenv('NEON_USER'),
+        "password": os.getenv('NEON_PASSWORD'),
+    }
+else:
+    DB_CONFIG = {
+        "host":     'localhost',
+        "port":     5433,
+        "dbname":   os.getenv('NSE_WAREHOUSE_DB', 'nse_warehouse'),
+        "user":     os.getenv('POSTGRES_USER', 'pipeline_user'),
+        "password": os.getenv('POSTGRES_PASSWORD'),
+    }
 
 def load_universe(path):
     df = pd.read_excel(path, engine='openpyxl')
@@ -49,8 +60,14 @@ def insert_records(conn, records):
     sql = """
         INSERT INTO raw.eod_prices (ticker, trade_date, open, high, low, close, volume)
         VALUES %s
-        ON CONFLICT (ticker, trade_date) DO NOTHING
-"""
+        ON CONFLICT (ticker, trade_date) DO UPDATE SET
+            open        = EXCLUDED.open,
+            high        = EXCLUDED.high,
+            low         = EXCLUDED.low,
+            close       = EXCLUDED.close,
+            volume      = EXCLUDED.volume,
+            ingested_at = NOW()
+    """
 
     with conn.cursor() as cur:
         execute_values(cur, sql, records)

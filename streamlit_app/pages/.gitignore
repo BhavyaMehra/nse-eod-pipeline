@@ -1,11 +1,4 @@
-.env
-dbt/profiles.yml
-logs/
-dbt/target/
-dbt/logs/
-venv/
-**/__pycache__/
-**/*.pyc
+streamlit_app/__pycache__/
 .streamlit/
 scripts/migrate_to_neon.py
 scripts/backfill.py
@@ -13,3 +6,4 @@ scripts/neon_setup.py
 scripts/neon_db_config.py
 scripts/run_dbt.sh
 temp.py
+**/*.pyc
