@@ -58,7 +58,7 @@ fig = px.bar(
     y=['Market'] * 3,
     orientation='h',
     color='Category',
-    color_discrete_map={'Gainers': '#00cc44', 'Losers': '#ff4444', 'Flat': '#888888'},
+    color_discrete_map={'Gainers': '#2d8a4e', 'Losers': '#c0392b', 'Flat': '#666666'},
     text='Label',
     barmode='stack'
 )
