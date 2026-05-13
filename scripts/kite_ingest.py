@@ -4,17 +4,25 @@ import psycopg2
 from psycopg2.extras import execute_values
 from kiteconnect import KiteConnect
 from dotenv import load_dotenv
-from datetime import date
+from datetime import date, datetime
+import sys
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 API_KEY = os.getenv("KITE_API_KEY")
 ACCESS_TOKEN = os.getenv('KITE_ACCESS_TOKEN')
-FNO_PATH = os.getenv('FNO_PATH')
 
 IN_DOCKER = os.path.exists('/.dockerenv')
 
+USE_NEON = IN_DOCKER or os.getenv('USE_NEON', 'false').lower() == 'true'
+print(f'USE_NEON={USE_NEON} | IN_DOCKER={IN_DOCKER}')
+
 if IN_DOCKER:
+    FNO_PATH = os.getenv('FNO_PATH')
+else:
+    FNO_PATH = os.path.join(os.path.dirname(__file__), 'fno_stocks.xlsx')
+
+if USE_NEON:
     DB_CONFIG = {
         "host":     os.getenv('NEON_HOST'),
         "sslmode":  'require',
@@ -55,6 +63,23 @@ def fetch_eod(kite, symbol, trade_date):
 
     return None
 
+def fetch_nifty_eod(kite, trade_date):
+    NIFTY_TOKEN = 256265
+    try:
+        data = kite.historical_data(
+            instrument_token=NIFTY_TOKEN,
+            from_date=trade_date,
+            to_date=trade_date,
+            interval='day'
+        )
+        if data:
+            row = data[0]
+            # volume is 0 for indices on Kite - stored as 0, handled in staging
+            return ('NIFTY 50', trade_date, row['open'], row['high'], row['low'], row['close'], row['volume'])
+    except Exception as e:
+        print(f'Failed NIFTY 50: {e}')
+    return None
+
 
 def insert_records(conn, records):
     sql = """
@@ -79,7 +104,12 @@ def run():
     kite.set_access_token(ACCESS_TOKEN)
 
     universe = load_universe(FNO_PATH)
-    today = date.today()
+
+    if len (sys.argv) > 1:
+        today = datetime.strptime(sys.argv[1], "%Y-%m-%d").date()
+    else:
+        today = date.today()
+        
     records = []
     failed = []
 
@@ -96,6 +126,13 @@ def run():
 
     if failed:
         print(f'Failed tickers: {failed}')
+
+    nifty_row = fetch_nifty_eod(kite, today)
+    if nifty_row:
+        records.append(nifty_row)
+        print('Nifty 50 fetched.')
+    else:
+        print('Nifty 50 fetch failed.')
 
     if records:
         conn = psycopg2.connect(**DB_CONFIG)

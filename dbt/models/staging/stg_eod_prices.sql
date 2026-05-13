@@ -14,7 +14,7 @@ renamed as (
         ingested_at
     from source
     where close is not null
-        and volume > 0
+        and (volume > 0 or ticker = 'NIFTY 50')
 )
 
 select * from renamed

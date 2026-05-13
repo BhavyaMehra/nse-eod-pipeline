@@ -1,0 +1,96 @@
+version: 2
+
+models:
+  - name: mart_eod_returns
+    description: Daily return % per ticker
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: trade_date
+        tests:
+          - not_null
+      - name: close
+        tests:
+          - not_null
+
+  - name: mart_moving_averages
+    description: 20-day and 50-day moving averages per ticker
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: trade_date
+        tests:
+          - not_null
+
+  - name: mart_volatility
+    description: 20-day rolling volatility (stddev of daily returns)
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: trade_date
+        tests:
+          - not_null
+
+  - name: mart_rsi
+    description: RSI(14) per ticker using simple rolling average method
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: trade_date
+        tests:
+          - not_null
+      - name: rsi_14d
+        description: "14-day RSI. Nulls may exist during warm-up period."
+
+  - name: mart_atr
+    description: True Range and ATR(14) per ticker
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: trade_date
+        tests:
+          - not_null
+      - name: atr_14d
+        description: "14-day ATR. Nulls may exist during warm-up period."
+
+  - name: mart_vol_ratio
+    description: Volume ratio (today vs 20d avg) and 52-week high proximity
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: trade_date
+        tests:
+          - not_null
+      - name: vol_ratio
+        description: "Current volume divided by 20 day average volume"
+
+  - name: mart_relative_strength
+    description: 20-day return of stock minus 20-day return of Nifty 50
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: trade_date
+        tests:
+          - not_null
+
+  - name: mart_daily_features
+    description: >
+      Wide mart joining all indicators per ticker per date.
+      Primary table for the Streamlit screener. Query latest trade_date for today's snapshot.
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+      - name: trade_date
+        tests:
+          - not_null
+      - name: close
+        tests:
+          - not_null

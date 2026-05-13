@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: stg_eod_prices
+    description: "Cleaned NSE EOD OHLCV prices after raw ingestion"
+
+    columns:
+      - name: ticker
+        tests:
+          - not_null
+
+      - name: trade_date
+        tests:
+          - not_null
+
+      - name: open
+        tests:
+          - not_null
+
+      - name: high
+        tests:
+          - not_null
+
+      - name: low
+        tests:
+          - not_null
+
+      - name: close
+        tests:
+          - not_null
+
+      - name: volume
+        tests:
+          - not_null
