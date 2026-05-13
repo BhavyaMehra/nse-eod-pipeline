@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 st.title(' NSE EOD Market Dashboard')
-st.caption("Production-style data pipeline } 135 NSE large-cap stocks | Refreshsed daily at 3:45 pm IST")
+st.caption("Production-style data pipeline | 135 NSE large-cap stocks | Refreshed daily at 3:45 pm IST")
 
 st.divider()
 
