@@ -28,15 +28,25 @@ price_df = run_query(f"""
 
 st.divider()
 
-# Price chart with MAs
-st.subheader(f'{selected} - Price with Moving Averages')
-fig = go.Figure()
-fig.add_trace(go.Scatter(x=price_df['trade_date'], y=price_df['close'].round(2), name='Close', line=dict(color='blue', width=2)))
-fig.add_trace(go.Scatter(x=price_df['trade_date'], y=price_df['ma_20d'].round(2), name='20d MA', line=dict(color='cyan', width=1.5)))
-fig.add_trace(go.Scatter(x=price_df['trade_date'], y=price_df['ma_50d'].round(2), name='50d MA', line=dict(color='orange', width=1.5)))
+col1, col2 = st.columns(2)
+with col1:
+   # Price chart with MAs
+   st.subheader(f'{selected} - Price with Moving Averages')
+   fig = go.Figure()
+   fig.add_trace(go.Scatter(x=price_df['trade_date'], y=price_df['close'].round(2), name='Close', line=dict(color='blue', width=2)))
+   fig.add_trace(go.Scatter(x=price_df['trade_date'], y=price_df['ma_20d'].round(2), name='20D MA', line=dict(color='cyan', width=1.5)))
+   fig.add_trace(go.Scatter(x=price_df['trade_date'], y=price_df['ma_50d'].round(2), name='50D MA', line=dict(color='orange', width=1.5)))
 
-fig.update_layout(template='plotly_dark', xaxis_title='Date', yaxis_title='Price')
-st.plotly_chart(fig, width='stretch')
+   fig.update_layout(template='plotly_dark', xaxis_title='Date', yaxis_title='Price')
+   st.plotly_chart(fig, width='stretch')
+
+with col2:
+   # Volatility chart
+   st.subheader('20D Rolling Volatility')
+   fig3 = go.Figure()
+   fig3.add_trace(go.Scatter(x=price_df['trade_date'], y=price_df['vol_20d'], name='Volatility', line=dict(color='blue', width=2)))
+   fig3.update_layout(template='plotly_dark', xaxis_title='Date', yaxis_title='Volatility')
+   st.plotly_chart(fig3, width='stretch')
 
 # Returns bar chart
 st.subheader('Daily Returns %')
@@ -49,9 +59,3 @@ fig2.add_trace(go.Bar(
 fig2.update_layout(template='plotly_dark', xaxis_title='Date', yaxis_title='Return %')
 st.plotly_chart(fig2, width='stretch')
 
-# Volatility chart
-st.subheader('20d Rolling Volatility')
-fig3 = go.Figure()
-fig3.add_trace(go.Scatter(x=price_df['trade_date'], y=price_df['vol_20d'], name='Volatility', line=dict(color='blue', width=2)))
-fig3.update_layout(template='plotly_dark', xaxis_title='Date', yaxis_title='Volatility')
-st.plotly_chart(fig3, width='stretch')
