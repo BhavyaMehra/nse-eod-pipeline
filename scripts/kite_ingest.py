@@ -11,33 +11,15 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 API_KEY = os.getenv("KITE_API_KEY")
 ACCESS_TOKEN = os.getenv('KITE_ACCESS_TOKEN')
+FNO_PATH = os.path.join(os.path.dirname(__file__), 'fno_stocks.xlsx')
 
-IN_DOCKER = os.path.exists('/.dockerenv')
-
-USE_NEON = IN_DOCKER or os.getenv('USE_NEON', 'false').lower() == 'true'
-print(f'USE_NEON={USE_NEON} | IN_DOCKER={IN_DOCKER}')
-
-if IN_DOCKER:
-    FNO_PATH = os.getenv('FNO_PATH')
-else:
-    FNO_PATH = os.path.join(os.path.dirname(__file__), 'fno_stocks.xlsx')
-
-if USE_NEON:
-    DB_CONFIG = {
-        "host":     os.getenv('NEON_HOST'),
-        "sslmode":  'require',
-        "dbname":   os.getenv('NEON_DB'),
-        "user":     os.getenv('NEON_USER'),
-        "password": os.getenv('NEON_PASSWORD'),
-    }
-else:
-    DB_CONFIG = {
-        "host":     'localhost',
-        "port":     5433,
-        "dbname":   os.getenv('NSE_WAREHOUSE_DB', 'nse_warehouse'),
-        "user":     os.getenv('POSTGRES_USER', 'pipeline_user'),
-        "password": os.getenv('POSTGRES_PASSWORD'),
-    }
+DB_CONFIG = {
+    "host":     os.getenv('NEON_HOST'),
+    "sslmode":  'require',
+    "dbname":   os.getenv('NEON_DB'),
+    "user":     os.getenv('NEON_USER'),
+    "password": os.getenv('NEON_PASSWORD'),
+}
 
 def load_universe(path):
     df = pd.read_excel(path, engine='openpyxl')

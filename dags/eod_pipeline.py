@@ -1,9 +1,14 @@
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from datetime import datetime
-import pendulum
 
-local_tz = pendulum.timezone('Asia/Kolkata')
+NEON_ENV = """
+    export POSTGRES_HOST=$NEON_HOST &&
+    export POSTGRES_PORT=5432 &&
+    export POSTGRES_USER=$NEON_USER &&
+    export POSTGRES_PASSWORD=$NEON_PASSWORD &&
+    export NSE_WAREHOUSE_DB=$NEON_DB &&
+"""
 
 default_args = {
     'owner': 'bhavya',
@@ -14,26 +19,41 @@ with DAG(
     dag_id='eod_pipeline',
     default_args=default_args,
     start_date=datetime(2026, 5, 1),
-    schedule='45 10 * * 1-5',
+    schedule='15 10 * * 1-5',
     catchup=False,
     tags=['nse', 'eod', 'pipeline'],
 ) as dag:
-    
+
     ingest = BashOperator(
         task_id='kite_ingest',
-        bash_command='python /opt/airflow/scripts/kite_ingest.py'
+        bash_command='USE_NEON=true python /opt/airflow/scripts/kite_ingest.py'
     )
 
-    dbt_run = BashOperator(
-        task_id='dbt_run',
-        bash_command="""
-        export POSTGRES_HOST=$NEON_HOST &&
-        export POSTGRES_PORT=5432 &&
-        export POSTGRES_USER=$NEON_USER &&
-        export POSTGRES_PASSWORD=$NEON_PASSWORD &&
-        export NSE_WAREHOUSE_DB=$NEON_DB &&
-        cd /opt/airflow/dbt && dbt run --profiles-dir /opt/airflow/dbt
-    """
+    dbt_staging = BashOperator(
+        task_id='dbt_staging',
+        bash_command=f"""
+            {NEON_ENV}
+            cd /opt/airflow/dbt &&
+            dbt run --select staging --profiles-dir .
+        """
     )
 
-    ingest >> dbt_run
+    dbt_test = BashOperator(
+        task_id='dbt_test',
+        bash_command=f"""
+            {NEON_ENV}
+            cd /opt/airflow/dbt &&
+            dbt test --profiles-dir .
+        """
+    )
+
+    dbt_marts = BashOperator(
+        task_id='dbt_marts',
+        bash_command=f"""
+            {NEON_ENV}
+            cd /opt/airflow/dbt &&
+            dbt run --select marts --profiles-dir .
+        """
+    )
+
+    ingest >> dbt_staging >> dbt_test >> dbt_marts
