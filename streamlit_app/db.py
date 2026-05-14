@@ -22,3 +22,9 @@ def run_query(query):
     conn.close()
     return df
 
+
+def run_query_uncached(query):
+    conn = get_connection()
+    df = pd.read_sql(query)
+    conn.close()
+    return df

@@ -6,7 +6,7 @@ import os
 from datetime import date
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from db import run_query
+from db import run_query, run_query_uncached
 
 st.set_page_config(
     page_title="NSE Market Dashboard",
@@ -18,7 +18,7 @@ st.caption("Production-style data pipeline | 135 NSE large-cap stocks | Refreshe
 
 st.divider()
 
-latest_date = run_query('select max(trade_date) as latest from marts.mart_eod_returns')['latest'][0]
+latest_date = run_query_uncached('select max(trade_date) as latest from marts.mart_eod_returns')['latest'][0]
 
 df = run_query(f"""
     select ticker, daily_return_pct
