@@ -51,15 +51,17 @@ col4.metric('Flat', flat)
 # Heatmap
 
 st.subheader('Return Heatmap')
+df_heatmap = df[df['daily_return_pct'] != 0].dropna(subset=['ticker', 'daily_return_pct']).copy()
+df_heatmap['abs_return'] = df_heatmap['daily_return_pct'].abs()
+
 fig = px.treemap(
-    df,
+    df_heatmap,
     path=['ticker'],
-    values=df['daily_return_pct'].abs(),
+    values='abs_return',
     color='daily_return_pct',
     color_continuous_scale='RdYlGn',
     color_continuous_midpoint=0,
-    range_color=[-5,5],
-    hover_data={'daily_return_pct': ':.2f'}
+    range_color=[-5,5]
 )
 fig.update_layout(margin=dict(t=0, l=0, r=0, b=0))
 st.plotly_chart(fig, width='stretch')
@@ -80,7 +82,8 @@ with col1:
 with col2:
     st.subheader('Top 10 Losers')
     st.dataframe(
-        df.tail(10).round(2).rename(columns={'ticker': 'Ticker', 'daily_return_pct': 'Return %'}),
+        df.tail(10).sort_values('daily_return_pct')
+        .round(2).rename(columns={'ticker': 'Ticker', 'daily_return_pct': 'Return %'}),
         hide_index=True,
         width='stretch'
     )
