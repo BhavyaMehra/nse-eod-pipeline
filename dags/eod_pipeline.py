@@ -23,6 +23,9 @@ with DAG(
     catchup=False,
     tags=['nse', 'eod', 'pipeline'],
 ) as dag:
+    
+    DBT_CMD = "cd /opt/airflow/dbt && dbt"
+    DBT_FLAGS = "--profiles-dir . --no-partial-parse"
 
     ingest = BashOperator(
         task_id='kite_ingest',
@@ -32,28 +35,18 @@ with DAG(
     dbt_staging = BashOperator(
         task_id='dbt_staging',
         bash_command=f"""
-            {NEON_ENV}
-            cd /opt/airflow/dbt &&
-            dbt run --select staging --profiles-dir .
+            {NEON_ENV} {DBT_CMD} run --select staging {DBT_FLAGS}
         """
     )
 
     dbt_test = BashOperator(
         task_id='dbt_test',
-        bash_command=f"""
-            {NEON_ENV}
-            cd /opt/airflow/dbt &&
-            dbt test --profiles-dir .
-        """
+        bash_command=f"{NEON_ENV} {DBT_CMD} test {DBT_FLAGS}"
     )
 
     dbt_marts = BashOperator(
         task_id='dbt_marts',
-        bash_command=f"""
-            {NEON_ENV}
-            cd /opt/airflow/dbt &&
-            dbt run --select marts --profiles-dir .
-        """
+        bash_command=f"{NEON_ENV} {DBT_CMD} run --select marts {DBT_FLAGS}"
     )
 
     ingest >> dbt_staging >> dbt_test >> dbt_marts
